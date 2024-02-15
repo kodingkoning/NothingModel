@@ -44,7 +44,6 @@ NetLogo_Console --headless --model NothingModel.nlogo --experiment prob50 --min-
 NetLogo_Console --headless --model NothingModel.nlogo --experiment prob80 --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
 NetLogo_Console --headless --model NothingModel.nlogo --experiment prob100 --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
 # NOTE: "prob0" means 0% probability of the actions, "prob10" means a 10% probability, etc. This applies to both communication and computation.
-# TODO: implement
 
 # Agent types
 NetLogo_Console --headless --model NothingModel.nlogo --experiment types1 --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
@@ -52,20 +51,13 @@ NetLogo_Console --headless --model NothingModel.nlogo --experiment types10 --min
 NetLogo_Console --headless --model NothingModel.nlogo --experiment types50 --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
 NetLogo_Console --headless --model NothingModel.nlogo --experiment types100 --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
 # NOTE: the number of unique agent types can be changed by changing the 'agent-types' variable in the experiment specifications. Experiment "types1" uses one type, "type10" uses 10 types, etc. The "types" of agents are not different breeds in NetLogo but turtles with different types of actions. The range of variability may also be changed in the implementation.
-# TODO: implement
 
+# NOTE: low, medium, high density should be changed based on hardware and comparison languages
 # Low intensity
 NetLogo_Console --headless --model NothingModel.nlogo --experiment low --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
-# TODO: implement
 
 # Medium intensity
 NetLogo_Console --headless --model NothingModel.nlogo --experiment medium --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
-# TODO: implement
 
 # High intensity
 NetLogo_Console --headless --model NothingModel.nlogo --experiment high --min-pxcor 1 --min-pycor 1 --max-pxcor 100 --max-pycor 100
-# TODO: implement
-
-# TODO: make sure the density is changed in one of these tests
-
-# TODO: test all of these
