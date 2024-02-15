@@ -1,23 +1,106 @@
-; version of NothingModel to vary memory usage
-globals [ list-size ] ; the number of elements put in the list. Should be changed between experiments
-patches-own [ x ]
+; NothingModel with various versions for benchmarking
+; See the BehaviorSpace experiments for the various permutations matching those listed in the README
+
+globals [ comp-size list-size neighborhood-radius ]
+; global comp-size: amount of computation in each iteration
+; global list-size: length of list for every patch in memory and communication tests
+; global neighborhood-radius: radius to define the neighborhood in communication test
+
+patches-own [ x y friend ]
+; Each patch owns:
+;    x, a list of list-size numbers
+;    y, a number used to accumulate communicated values
+;    friend, another patch to communicate with
+
 to setup
   clear-all
   reset-ticks
+  reset-timer ; NOTE: call 'timer' to get elapsed time at end of experiment
+end
+
+to computation_rng
+  repeat comp-size [ set x random 100 ]
+end
+
+to computation_mult
+  let mat1 n-values comp-size [random 100]
+  let mat2 n-values comp-size [random 100]
+  (foreach mat1 mat2
+   [ [a b] -> set x (a * b) ])
+end
+
+to computation_factors
+  foreach (range 2 comp-size) [
+    [val1] -> foreach (range 2 comp-size) [
+      [val2] -> set x (val1 / val2)
+    ]
+  ]
+end
+
+to computation
+  ask patches [
+    computation_rng
+    computation_mult
+    computation_factors
+  ]
+end
+
+to memory-setup
+    ask patches [
+    set x n-values list-size [ i -> i ] ; set x to list of list-size values
+    set y 0
+  ]
+end
+
+to communication-setup
   ask patches [
     set x n-values list-size [ i -> i ] ; set x to list of list-size values
+    set y 0
+    set friend one-of patches
+  ]
+end
+
+to all-to-all-comm
+  ask patches [
+    set y y + (mean (sentence [mean x] of patches)) / 10 ;
+  ]
+end
+
+to radius-comm
+  ask patches [
+    set y y + (mean (sentence [mean x] of patches in-radius neighborhood-radius)) / 8 ;
+  ]
+end
+
+to pair-comm-fixed
+  ask patches [
+    set y y + (mean (sentence [mean x] of friend)) / 5 ;
+  ]
+end
+
+to pair-comm-rand
+  ask patches [
+    set y y + (mean (sentence [mean x] of one-of patches)) / 6 ;
   ]
 end
 
 to go
   tick
 end
+
+to-report avg_x
+  report mean (sentence [mean x] of patches)
+end
+
+to-report avg_y
+  report mean [y] of patches
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-723
-524
+169
+33
+682
+547
 -1
 -1
 5.0
@@ -74,14 +157,47 @@ NIL
 NIL
 0
 
+MONITOR
+767
+46
+824
+91
+NIL
+avg_y
+17
+1
+11
+
+MONITOR
+769
+108
+828
+153
+patches
+count patches
+17
+1
+11
+
+MONITOR
+771
+170
+828
+215
+x
+avg_x
+17
+1
+11
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-A model that models nothing, for the purpose of benchmarking. All the agents (patches) do are exist. The size of the model defaults to a 100x100 square.
+A model for benchmarking. The base version does nothing, and all agents simply exist. In the other versions, the complexity varies in terms of computation, communication, memory, or homogeneity.
 
 ## HOW IT WORKS
 
-Setup clears the environment, and go starts the clock ticking.
+Setup clears the environment, and go starts the clock ticking. Other functions can be added to increase the complexity
 
 ## HOW TO USE IT
 
@@ -89,7 +205,7 @@ Click setup and then go, or run headless.
 
 ## EXTENDING THE MODEL
 
-This model is made to be extended. Try adding features from the other models in the repository.
+This model is made to be extended. Try adding functions to setup or go.
 
 ## CREDITS AND REFERENCES
 
@@ -405,47 +521,153 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="memory1" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup
-set list-size 1</setup>
-    <go>go</go>
+  <experiment name="comm_all2all" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>all-to-all-comm
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
-    <subExperiment>
-      <enumeratedValueSet variable="world-width">
-        <value value="100"/>
-      </enumeratedValueSet>
-      <enumeratedValueSet variable="world-height">
-        <value value="100"/>
-      </enumeratedValueSet>
-    </subExperiment>
+  </experiment>
+  <experiment name="comm_neighborhood" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>radius-comm
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+  </experiment>
+  <experiment name="comm_pair_fixed" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>pair-comm-fixed
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+  </experiment>
+  <experiment name="comm_pair_rand" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>pair-comm-rand
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+  </experiment>
+  <experiment name="comm_report" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x</metric>
+  </experiment>
+  <experiment name="comm_all" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>all-to-all-comm
+radius-comm
+pair-comm-fixed
+pair-comm-rand
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x</metric>
+  </experiment>
+  <experiment name="nothingmodel" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+  </experiment>
+  <experiment name="computation1" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>computation
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="computation10" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>computation
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="computation100" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>computation
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="computation_rng" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>ask patches [ computation_rng ]
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="computation_factors" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>ask patches [ computation_factors ]
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="computation_mult" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>ask patches [ computation_mult ]
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="comp-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="memory1" repetitions="1" runMetricsEveryStep="false">
+    <setup>memory-setup
+setup</setup>
+    <go>go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="list-size">
+      <value value="1"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="memory10" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup
-set list-size 10</setup>
+    <setup>memory-setup
+setup</setup>
     <go>go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
-    <subExperiment>
-      <enumeratedValueSet variable="world-width">
-        <value value="100"/>
-      </enumeratedValueSet>
-      <enumeratedValueSet variable="world-height">
-        <value value="100"/>
-      </enumeratedValueSet>
-    </subExperiment>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="memory100" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup
-set list-size 100</setup>
+    <setup>memory-setup
+setup</setup>
     <go>go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
-    <subExperiment>
-      <enumeratedValueSet variable="world-width">
-        <value value="100"/>
-      </enumeratedValueSet>
-      <enumeratedValueSet variable="world-height">
-        <value value="100"/>
-      </enumeratedValueSet>
-    </subExperiment>
+    <enumeratedValueSet variable="list-size">
+      <value value="100"/>
+    </enumeratedValueSet>
   </experiment>
 </experiments>
 @#$#@#$#@
