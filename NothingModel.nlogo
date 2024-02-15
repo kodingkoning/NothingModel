@@ -1,16 +1,19 @@
 ; NothingModel with various versions for benchmarking
 ; See the BehaviorSpace experiments for the various permutations matching those listed in the README
 
-globals [ comp-size list-size neighborhood-radius ]
+globals [ comp-size list-size neighborhood-radius stride action-prob agent-types ]
 ; global comp-size: amount of computation in each iteration
 ; global list-size: length of list for every patch in memory and communication tests
 ; global neighborhood-radius: radius to define the neighborhood in communication test
+; global stride: step size for turtles with default stride
 
 patches-own [ x y friend ]
 ; Each patch owns:
 ;    x, a list of list-size numbers
 ;    y, a number used to accumulate communicated values
 ;    friend, another patch to communicate with
+
+turtles-own [ my-stride my-comp my-mem my-comm my-comp-prob my-mem-prob my-comm-prob ]
 
 to setup
   clear-all
@@ -81,6 +84,73 @@ end
 to pair-comm-rand
   ask patches [
     set y y + (mean (sentence [mean x] of one-of patches)) / 6 ;
+  ]
+end
+
+to cluster-setup
+  let group_x random-xcor
+  let group_y random-ycor
+  create-turtles count patches [
+    setxy group_x group_y
+  ]
+  ask turtles [
+    set my-stride stride
+  ]
+end
+
+to cluster
+  ask turtles [
+    set heading random 360
+    fd my-stride
+  ]
+end
+
+to prob-setup
+  ; communication-setup
+end
+
+to prob-go
+  ask patches [
+    if random-float 1 < action-prob [ ; computation
+      computation_rng
+      computation_mult
+      computation_factors
+    ]
+    if random-float 1 < action-prob [ ; communication
+      all-to-all-comm
+      radius-comm
+      pair-comm-fixed
+      pair-comm-rand
+    ]
+  ]
+end
+
+to types-setup
+  repeat agent-types [ ; create unique turtles
+    create-turtles 1 [
+      set my-stride random 20
+
+    ]
+  ]
+  while [ count turtles < count patches ] [ ; get to the correct number of total tutles
+    ; TODO: hatch a new turtle from a random turtle
+  ]
+  ask turtles [ ; move all turtles to random locations so they are scattered
+    setxy random-xcor random-ycor
+  ]
+
+  ; TODO: get to the total number of agents
+  create-turtles count patches [
+    set my-stride random 20
+  ]
+  ; TODO: implement
+end
+
+to types-go
+  ask turtles [
+    set heading random 360
+    fd my-stride
+    ; TODO: do all the actions
   ]
 end
 
@@ -561,7 +631,7 @@ setup</setup>
     <timeLimit steps="10000"/>
     <metric>avg_x</metric>
   </experiment>
-  <experiment name="comm_all" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="communication1" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 setup</setup>
     <go>all-to-all-comm
@@ -572,6 +642,9 @@ go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
     <metric>avg_x</metric>
+    <enumeratedValueSet variable="list-size">
+      <value value="1"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="nothingmodel" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
@@ -667,6 +740,135 @@ setup</setup>
     <timeLimit steps="10000"/>
     <enumeratedValueSet variable="list-size">
       <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="communication10" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>all-to-all-comm
+radius-comm
+pair-comm-fixed
+pair-comm-rand
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x</metric>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="communication100" repetitions="1" runMetricsEveryStep="false">
+    <setup>communication-setup
+setup</setup>
+    <go>all-to-all-comm
+radius-comm
+pair-comm-fixed
+pair-comm-rand
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x</metric>
+    <enumeratedValueSet variable="list-size">
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="cluster1" repetitions="1" runMetricsEveryStep="false">
+    <setup>cluster-setup
+setup</setup>
+    <go>cluster
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="stride">
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="cluster2" repetitions="1" runMetricsEveryStep="false">
+    <setup>cluster-setup
+setup</setup>
+    <go>cluster
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="stride">
+      <value value="2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="cluster5" repetitions="1" runMetricsEveryStep="false">
+    <setup>cluster-setup
+setup</setup>
+    <go>cluster
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="stride">
+      <value value="5"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="cluster10" repetitions="1" runMetricsEveryStep="false">
+    <setup>cluster-setup
+setup</setup>
+    <go>cluster
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="stride">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prob0" repetitions="1" runMetricsEveryStep="false">
+    <setup>prob-setup
+setup</setup>
+    <go>prob-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="action-prob">
+      <value value="0"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prob10" repetitions="1" runMetricsEveryStep="false">
+    <setup>prob-setup
+setup</setup>
+    <go>prob-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="action-prob">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prob50" repetitions="1" runMetricsEveryStep="false">
+    <setup>prob-setup
+setup</setup>
+    <go>prob-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="action-prob">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prob80" repetitions="1" runMetricsEveryStep="false">
+    <setup>prob-setup
+setup</setup>
+    <go>prob-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="action-prob">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prob100" repetitions="1" runMetricsEveryStep="false">
+    <setup>prob-setup
+setup</setup>
+    <go>prob-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="action-prob">
+      <value value="1"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
