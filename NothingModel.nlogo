@@ -71,27 +71,19 @@ to communication-setup
 end
 
 to all-to-all-comm
-  ask patches [
-    set y y + (mean (sentence [mean x] of patches)) / 10
-  ]
+  set y y + (mean (sentence [mean x] of patches)) / 10
 end
 
 to radius-comm
-  ask patches [
-    set y y + (mean (sentence [mean x] of patches in-radius neighborhood-radius)) / 8
-  ]
+  set y y + (mean (sentence [mean x] of patches in-radius neighborhood-radius)) / 8
 end
 
 to pair-comm-fixed
-  ask patches [
-    set y y + (mean (sentence [mean x] of friend)) / 5
-  ]
+  set y y + ([mean x] of friend) / 5
 end
 
 to pair-comm-rand
-  ask patches [
-    set y y + (mean (sentence [mean x] of one-of patches)) / 6
-  ]
+  set y y + ([mean x] of one-of patches) / 6
 end
 
 to cluster-setup
@@ -163,7 +155,7 @@ to turtle-comms
   set my-y my-y + (mean (sentence [mean my-x] of turtles)) / 10 ; all-to-all
   set my-y my-y + (mean (sentence [mean my-x] of turtles in-radius my-neighborhood)) / 8 ; neighborhood
   set my-y my-y + [mean my-x] of my-friend / 5 ; fixed pair
-  set my-y my-y + (mean (sentence [mean my-x] of one-of turtles)) / 6 ; random other
+  set my-y my-y + [mean my-x] of one-of turtles / 6 ; random other
 end
 
 to turtle-comp
@@ -212,6 +204,7 @@ to density-setup
     set my-comm my-mem
     set my-x n-values my-mem [ i -> i ] ; set x to list
     set my-y 0
+    set my-friend one-of turtles
   ]
 end
 
@@ -673,7 +666,7 @@ NetLogo 6.4.0
   <experiment name="comm_all2all" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>all-to-all-comm
+    <go>ask patches [ all-to-all-comm ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
@@ -684,7 +677,7 @@ go</go>
   <experiment name="comm_neighborhood" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>radius-comm
+    <go>ask patches [ radius-comm ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
@@ -698,18 +691,24 @@ go</go>
   <experiment name="comm_pair_fixed" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>pair-comm-fixed
+    <go>ask patches [ pair-comm-fixed ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="comm_pair_rand" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>pair-comm-rand
+    <go>ask patches [ pair-comm-rand ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="comm_report" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
@@ -718,14 +717,17 @@ exp-setup</setup>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
     <metric>avg_x</metric>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="communication1" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>all-to-all-comm
-radius-comm
-pair-comm-fixed
-pair-comm-rand
+    <go>ask patches [ all-to-all-comm ]
+ask patches [ radius-comm ]
+ask patches [ pair-comm-fixed ]
+ask patches [ pair-comm-rand ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
@@ -833,10 +835,10 @@ exp-setup</setup>
   <experiment name="communication10" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>all-to-all-comm
-radius-comm
-pair-comm-fixed
-pair-comm-rand
+    <go>ask patches [ all-to-all-comm ]
+ask patches [ radius-comm ]
+ask patches [ pair-comm-fixed ]
+ask patches [ pair-comm-rand ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
@@ -848,10 +850,10 @@ go</go>
   <experiment name="communication100" repetitions="1" runMetricsEveryStep="false">
     <setup>communication-setup
 exp-setup</setup>
-    <go>all-to-all-comm
-radius-comm
-pair-comm-fixed
-pair-comm-rand
+    <go>ask patches [ all-to-all-comm ]
+ask patches [ radius-comm ]
+ask patches [ pair-comm-fixed ]
+ask patches [ pair-comm-rand ]
 go</go>
     <postRun>print word "Elapsed Time: " word timer "s"</postRun>
     <timeLimit steps="10000"/>
@@ -914,6 +916,9 @@ go</go>
     <enumeratedValueSet variable="action-prob">
       <value value="0"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="prob10" repetitions="1" runMetricsEveryStep="false">
     <setup>prob-setup
@@ -924,6 +929,9 @@ go</go>
     <timeLimit steps="10000"/>
     <enumeratedValueSet variable="action-prob">
       <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="prob50" repetitions="1" runMetricsEveryStep="false">
@@ -936,6 +944,9 @@ go</go>
     <enumeratedValueSet variable="action-prob">
       <value value="0.5"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="prob80" repetitions="1" runMetricsEveryStep="false">
     <setup>prob-setup
@@ -947,6 +958,9 @@ go</go>
     <enumeratedValueSet variable="action-prob">
       <value value="0.8"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="prob100" repetitions="1" runMetricsEveryStep="false">
     <setup>prob-setup
@@ -957,6 +971,33 @@ go</go>
     <timeLimit steps="10000"/>
     <enumeratedValueSet variable="action-prob">
       <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="list-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="types1" repetitions="1" runMetricsEveryStep="false">
+    <setup>types-setup
+exp-setup</setup>
+    <go>types-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x_turtles</metric>
+    <enumeratedValueSet variable="agent-types">
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+    <experiment name="types50" repetitions="1" runMetricsEveryStep="false">
+    <setup>types-setup
+exp-setup</setup>
+    <go>types-go
+go</go>
+    <postRun>print word "Elapsed Time: " word timer "s"</postRun>
+    <timeLimit steps="10000"/>
+    <metric>avg_x_turtles</metric>
+    <enumeratedValueSet variable="agent-types">
+      <value value="50"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="types10" repetitions="1" runMetricsEveryStep="false">
